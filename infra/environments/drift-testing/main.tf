@@ -58,7 +58,6 @@ resource "google_compute_address" "drift_test_ip" {
   
   labels = {
     environment = "dev"
-    purpose     = ""
     some        = "value"
   }
 }
