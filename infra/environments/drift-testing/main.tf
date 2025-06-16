@@ -1,5 +1,4 @@
 
-
 terraform {
   required_providers {
     google = {
@@ -24,18 +23,11 @@ resource "google_storage_bucket" "drift_test_bucket" {
   location      = "US-CENTRAL1"
   storage_class = "STANDARD"
   project       = "launchflow-services-dev"
-  requester_pays = true
   
   labels = {
     environment = "dev"
     purpose     = "drift-testing"
     team        = "platform"
-    foo         = "bar"
-  }
-
-  autoclass {
-    enabled                = true
-    terminal_storage_class = "NEARLINE"
   }
 
   versioning {
@@ -64,8 +56,6 @@ resource "google_compute_address" "drift_test_ip" {
   labels = {
     environment = "dev"
     purpose     = "drift-testing"
-    another     = "label"
-    nice        = "label"
   }
 }
 
@@ -78,7 +68,6 @@ resource "google_secret_manager_secret" "drift_test_secret" {
     environment = "dev"
     purpose     = "drift-testing"
     sensitive   = "false"
-    secret      = "label"
   }
 
   annotations = {
