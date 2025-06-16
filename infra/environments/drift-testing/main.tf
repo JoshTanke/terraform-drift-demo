@@ -28,7 +28,6 @@ resource "google_storage_bucket" "drift_test_bucket" {
   
   labels = {
     environment = "dev"
-    purpose     = ""
     team        = "platform"
     another     = "one"
     foo         = "bar"
@@ -59,7 +58,8 @@ resource "google_compute_address" "drift_test_ip" {
   
   labels = {
     environment = "dev"
-    purpose     = "drift-testing"
+    purpose     = ""
+    some        = "value"
   }
 }
 
