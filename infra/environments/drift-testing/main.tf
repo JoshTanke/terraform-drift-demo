@@ -1,4 +1,5 @@
 
+
 terraform {
   required_providers {
     google = {
@@ -21,13 +22,15 @@ provider "google" {
 resource "google_storage_bucket" "drift_test_bucket" {
   name          = "drift-test-bucket-${random_id.bucket_suffix.hex}"
   location      = "US-CENTRAL1"
-  storage_class = "STANDARD"
+  storage_class = "NEARLINE"
   project       = "launchflow-services-dev"
+  requester_pays = true
   
   labels = {
     environment = "dev"
-    purpose     = "drift-testing"
     team        = "platform"
+    another     = "one"
+    foo         = "bar"
   }
 
   versioning {
@@ -55,7 +58,7 @@ resource "google_compute_address" "drift_test_ip" {
   
   labels = {
     environment = "dev"
-    purpose     = "drift-testing"
+    some        = "value"
   }
 }
 
