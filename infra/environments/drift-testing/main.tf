@@ -1,5 +1,6 @@
 
 
+
 terraform {
   required_providers {
     google = {
@@ -29,17 +30,51 @@ resource "google_storage_bucket" "drift_test_bucket" {
   labels = {
     environment = "dev"
     team        = "platform"
-    another     = "one"
-    foo         = "bar"
+    foo         = "baz"
   }
 
   versioning {
     enabled = true
   }
 
+  # Rule 1: Delete objects after 30 days (existing)
   lifecycle_rule {
     condition {
       age = 30
+    }
+    action {
+      type = "Delete"
+    }
+  }
+
+  # Rule 2: Transition objects to COLDLINE after 60 days
+  lifecycle_rule {
+    condition {
+      age = 60
+      matches_storage_class = ["NEARLINE"]
+    }
+    action {
+      type = "SetStorageClass"
+      storage_class = "COLDLINE"
+    }
+  }
+
+  # Rule 3: Delete old versions after 7 days
+  lifecycle_rule {
+    condition {
+      age = 7
+      with_state = "ARCHIVED"
+    }
+    action {
+      type = "Delete"
+    }
+  }
+
+  # Rule 4: Delete objects with "temp-" prefix after 3 days
+  lifecycle_rule {
+    condition {
+      age = 3
+      matches_prefix = ["temp-"]
     }
     action {
       type = "Delete"
