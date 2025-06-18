@@ -29,8 +29,7 @@ resource "google_storage_bucket" "drift_test_bucket" {
   labels = {
     environment = "dev"
     team        = "platform"
-    another     = "one"
-    foo         = "bar"
+    foo         = "baz"
   }
 
   versioning {
