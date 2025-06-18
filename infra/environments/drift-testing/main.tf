@@ -37,29 +37,19 @@ resource "google_storage_bucket" "drift_test_bucket" {
     enabled = true
   }
 
-  # Rule 1: Delete objects after 30 days (existing)
+  # Rule 1: Set storage class to ARCHIVE for NEARLINE objects immediately
   lifecycle_rule {
     condition {
-      age = 30
-    }
-    action {
-      type = "Delete"
-    }
-  }
-
-  # Rule 2: Transition objects to COLDLINE after 60 days
-  lifecycle_rule {
-    condition {
-      age = 60
+      age = 0
       matches_storage_class = ["NEARLINE"]
     }
     action {
       type = "SetStorageClass"
-      storage_class = "COLDLINE"
+      storage_class = "ARCHIVE"
     }
   }
 
-  # Rule 3: Delete old versions after 7 days
+  # Rule 2: Delete archived objects after 7 days
   lifecycle_rule {
     condition {
       age = 7
@@ -70,10 +60,11 @@ resource "google_storage_bucket" "drift_test_bucket" {
     }
   }
 
-  # Rule 4: Delete objects with "temp-" prefix after 3 days
+  # Rule 3: Delete objects with "temp-" prefix after 3 days
   lifecycle_rule {
     condition {
       age = 3
+      with_state = "ANY"
       matches_prefix = ["temp-"]
     }
     action {
