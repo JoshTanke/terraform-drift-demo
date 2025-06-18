@@ -116,27 +116,31 @@ resource "google_pubsub_topic" "drift_test_topic" {
   message_retention_duration = "86400s"
 }
 
-# Logging metric - easy to modify description and labels in console
-resource "google_logging_metric" "drift_test_metric" {
-  name   = "drift_test_error_count"
-  filter = "severity >= ERROR"
-  project = "launchflow-services-dev"
-  description = "Count of error-level log entries for drift testing"
+# Cloud Scheduler job - easy to modify description and schedule in console
+resource "google_cloud_scheduler_job" "drift_test_job" {
+  name        = "drift-test-job"
+  description = "Test job for drift detection"
+  schedule    = "0 9 * * 1"
+  time_zone   = "America/New_York"
+  region      = "us-central1"
+  project     = "launchflow-services-dev"
+  paused      = true
   
-  metric_descriptor {
-    metric_kind = "GAUGE"
-    value_type  = "INT64"
-    display_name = "Drift Test Error Count"
+  pubsub_target {
+    topic_name = google_pubsub_topic.drift_test_topic.id
+    data       = base64encode("Hello from drift test job!")
     
-    labels {
-      key         = "severity"
-      value_type  = "STRING"
-      description = "Log entry severity level"
+    attributes = {
+      environment = "dev"
+      purpose     = "drift-testing"
     }
   }
   
-  label_extractors = {
-    "severity" = "EXTRACT(severity)"
+  retry_config {
+    retry_count = 3
+    max_retry_duration = "60s"
+    min_backoff_duration = "5s"
+    max_backoff_duration = "30s"
   }
 }
 
@@ -162,6 +166,6 @@ output "topic_name" {
   value = google_pubsub_topic.drift_test_topic.name
 }
 
-output "metric_name" {
-  value = google_logging_metric.drift_test_metric.name
+output "scheduler_job_name" {
+  value = google_cloud_scheduler_job.drift_test_job.name
 }
