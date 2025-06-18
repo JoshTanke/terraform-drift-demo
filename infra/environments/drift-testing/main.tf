@@ -1,6 +1,4 @@
 
-
-
 terraform {
   required_providers {
     google = {
@@ -88,24 +86,61 @@ resource "google_compute_address" "drift_test_ip" {
   }
 }
 
-# Secret Manager secret - easy to modify labels and annotations in console
-resource "google_secret_manager_secret" "drift_test_secret" {
-  secret_id = "drift-test-secret"
-  project   = "launchflow-services-dev"
+# Compute disk - easy to modify labels and description in console
+resource "google_compute_disk" "drift_test_disk" {
+  name        = "drift-test-disk"
+  type        = "pd-standard"
+  zone        = "us-central1-a"
+  size        = 10
+  description = "Test disk for drift detection"
+  project     = "launchflow-services-dev"
   
   labels = {
     environment = "dev"
     purpose     = "drift-testing"
-    sensitive   = "false"
+    size        = "small"
   }
+}
 
-  annotations = {
-    description = "Test secret for drift detection"
-    owner       = "platform-team"
+# Pub/Sub topic - easy to modify labels in console
+resource "google_pubsub_topic" "drift_test_topic" {
+  name    = "drift-test-topic"
+  project = "launchflow-services-dev"
+  
+  labels = {
+    environment = "dev"
+    purpose     = "drift-testing"
+    team        = "platform"
   }
+  
+  message_retention_duration = "86400s"
+}
 
-  replication {
-    auto {}
+# Cloud Scheduler job - easy to modify description and schedule in console
+resource "google_cloud_scheduler_job" "drift_test_job" {
+  name        = "drift-test-job"
+  description = "Test job for drift detection"
+  schedule    = "0 9 * * 1"
+  time_zone   = "America/New_York"
+  region      = "us-central1"
+  project     = "launchflow-services-dev"
+  paused      = true
+  
+  pubsub_target {
+    topic_name = google_pubsub_topic.drift_test_topic.id
+    data       = base64encode("Hello from drift test job!")
+    
+    attributes = {
+      environment = "dev"
+      purpose     = "drift-testing"
+    }
+  }
+  
+  retry_config {
+    retry_count = 3
+    max_retry_duration = "60s"
+    min_backoff_duration = "5s"
+    max_backoff_duration = "30s"
   }
 }
 
@@ -123,6 +158,14 @@ output "static_ip" {
   value = google_compute_address.drift_test_ip.address
 }
 
-output "secret_name" {
-  value = google_secret_manager_secret.drift_test_secret.name
+output "disk_name" {
+  value = google_compute_disk.drift_test_disk.name
+}
+
+output "topic_name" {
+  value = google_pubsub_topic.drift_test_topic.name
+}
+
+output "scheduler_job_name" {
+  value = google_cloud_scheduler_job.drift_test_job.name
 }
