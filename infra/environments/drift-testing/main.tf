@@ -1,6 +1,4 @@
 
-
-
 terraform {
   required_providers {
     google = {
@@ -88,24 +86,57 @@ resource "google_compute_address" "drift_test_ip" {
   }
 }
 
-# Secret Manager secret - easy to modify labels and annotations in console
-resource "google_secret_manager_secret" "drift_test_secret" {
-  secret_id = "drift-test-secret"
-  project   = "launchflow-services-dev"
+# Compute disk - easy to modify labels and description in console
+resource "google_compute_disk" "drift_test_disk" {
+  name        = "drift-test-disk"
+  type        = "pd-standard"
+  zone        = "us-central1-a"
+  size        = 10
+  description = "Test disk for drift detection"
+  project     = "launchflow-services-dev"
   
   labels = {
     environment = "dev"
     purpose     = "drift-testing"
-    sensitive   = "false"
+    size        = "small"
   }
+}
 
-  annotations = {
-    description = "Test secret for drift detection"
-    owner       = "platform-team"
+# Pub/Sub topic - easy to modify labels in console
+resource "google_pubsub_topic" "drift_test_topic" {
+  name    = "drift-test-topic"
+  project = "launchflow-services-dev"
+  
+  labels = {
+    environment = "dev"
+    purpose     = "drift-testing"
+    team        = "platform"
   }
+  
+  message_retention_duration = "86400s"
+}
 
-  replication {
-    auto {}
+# Logging metric - easy to modify description and labels in console
+resource "google_logging_metric" "drift_test_metric" {
+  name   = "drift_test_error_count"
+  filter = "severity >= ERROR"
+  project = "launchflow-services-dev"
+  description = "Count of error-level log entries for drift testing"
+  
+  metric_descriptor {
+    metric_kind = "GAUGE"
+    value_type  = "INT64"
+    display_name = "Drift Test Error Count"
+    
+    labels {
+      key         = "severity"
+      value_type  = "STRING"
+      description = "Log entry severity level"
+    }
+  }
+  
+  label_extractors = {
+    "severity" = "EXTRACT(severity)"
   }
 }
 
@@ -123,6 +154,14 @@ output "static_ip" {
   value = google_compute_address.drift_test_ip.address
 }
 
-output "secret_name" {
-  value = google_secret_manager_secret.drift_test_secret.name
+output "disk_name" {
+  value = google_compute_disk.drift_test_disk.name
+}
+
+output "topic_name" {
+  value = google_pubsub_topic.drift_test_topic.name
+}
+
+output "metric_name" {
+  value = google_logging_metric.drift_test_metric.name
 }
