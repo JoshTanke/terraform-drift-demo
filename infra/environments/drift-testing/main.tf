@@ -1,4 +1,5 @@
 
+
 terraform {
   required_providers {
     google = {
@@ -28,41 +29,16 @@ resource "google_storage_bucket" "drift_test_bucket" {
   labels = {
     environment = "dev"
     team        = "platform"
-    foo         = "baz"
   }
 
   versioning {
     enabled = true
   }
 
-  # Rule 1: Set storage class to ARCHIVE for NEARLINE objects immediately
-  lifecycle_rule {
-    condition {
-      age = 0
-      matches_storage_class = ["NEARLINE"]
-    }
-    action {
-      type = "SetStorageClass"
-      storage_class = "ARCHIVE"
-    }
-  }
-
-  # Rule 2: Delete archived objects after 7 days
-  lifecycle_rule {
-    condition {
-      age = 7
-      with_state = "ARCHIVED"
-    }
-    action {
-      type = "Delete"
-    }
-  }
-
-  # Rule 3: Delete objects with "temp-" prefix after 3 days
+  # Rule 1: Delete objects with "temp-" prefix after 3 days
   lifecycle_rule {
     condition {
       age = 3
-      with_state = "ANY"
       matches_prefix = ["temp-"]
     }
     action {
@@ -113,14 +89,14 @@ resource "google_pubsub_topic" "drift_test_topic" {
     team        = "platform"
   }
   
-  message_retention_duration = "86400s"
+  message_retention_duration = "259200s"
 }
 
 # Cloud Scheduler job - easy to modify description and schedule in console
 resource "google_cloud_scheduler_job" "drift_test_job" {
   name        = "drift-test-job"
   description = "Test job for drift detection"
-  schedule    = "0 9 * * 1"
+  schedule    = "0 8 * * 1"
   time_zone   = "America/New_York"
   region      = "us-central1"
   project     = "launchflow-services-dev"
