@@ -1,5 +1,6 @@
 
 
+
 terraform {
   required_providers {
     google = {
@@ -96,7 +97,7 @@ resource "google_pubsub_topic" "drift_test_topic" {
 resource "google_cloud_scheduler_job" "drift_test_job" {
   name        = "drift-test-job"
   description = "Test job for drift detection"
-  schedule    = "0 8 * * 1"
+  schedule    = "0 10 * * 1"
   time_zone   = "America/New_York"
   region      = "us-central1"
   project     = "launchflow-services-dev"
